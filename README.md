@@ -1,12 +1,60 @@
-/* instance start stop*/
+/* instance start stop*//*
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.StartInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.StopInstancesRequest;
+*/
+
+/*Amazon EC2 START*/
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.StartInstancesRequest;
+
+/*stopinstances*/
+import com.amazonaws.services.ec2.model.StopInstancesRequest;
+
 
 /*instance reboot*/
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.RebootInstancesRequest;
+
+/*list image*/
+//import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Reservation;
+
+
+/*available region and zone*/
+//package aws.example.ec2;
+// snippet-start:[ec2.java1.describe_region_and_zones.import]
+//import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DescribeRegionsResult;
+import com.amazonaws.services.ec2.model.Region;
+import com.amazonaws.services.ec2.model.AvailabilityZone;
+import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
+
+
+/*create instance*/
+//import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.InstanceType;
+import com.amazonaws.services.ec2.model.RunInstancesRequest;
+import com.amazonaws.services.ec2.model.RunInstancesResult;
+import com.amazonaws.services.ec2.model.Tag;
+import com.amazonaws.services.ec2.model.CreateTagsRequest;
+import com.amazonaws.services.ec2.model.CreateTagsResult;
+
+/*listimage*/
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.Reservation;
 
 public class awsTest {
 /*
@@ -33,13 +81,16 @@ e);
 }
 ec2 = AmazonEC2ClientBuilder.standard()
 .withCredentials(credentialsProvider)
-.withRegion("us-east-2") /* check the region at AWS console */
+.withRegion("us-east-2c") /* check the region at AWS console */
 .build();
 }
+
 public static void main(String[] args) throws Exception {
 init();
 Scanner menu = new Scanner(System.in);
 Scanner id_string = new Scanner(System.in);
+
+String id:
 int number = 0;
 
 
@@ -60,12 +111,55 @@ System.out.println(" 7. reboot instance 8. list images ");
 System.out.println(" 99. quit ");
 System.out.println("------------------------------------------------------------");
 System.out.print("Enter an integer: ");
-<생략>
+
+
 switch(number) {
+
 case 1:
 listInstances();
 break;
-<생략>
+
+case 2: 
+	availableZones();
+	break;
+
+case 3:
+	System.out.println("enter the instance id : ");
+	
+	instanceId = scanId.next();
+	startInstance(instanceId);
+	break;
+
+case 4:
+	availableRegions();
+	break;
+
+case 5:
+	System.out.println("enter the instance id : ");
+	
+	instanceId = scanId.next();
+	stopInstance(instanceId);
+	break;
+
+case 6:
+	System.out.println("enter the image id : ");
+	
+	imgId = scanId.next();
+	createInstance(imgId);
+	break;
+case 7:
+	System.out.println("enter the instance id : ");
+	
+	instanceId = scanId.next();
+	rebootInstance(instanceId);	
+case 8:
+	listImages();
+	break;
+
+case 99:
+	System.exit(0);
+	break;
+
 }
 
 
@@ -100,24 +194,117 @@ done = true;
 }
 
 
-public static void startInstance(Ec2Client ec2, String instanceId) {
+public static void startInstance(String instance_id) {
+    System.out.println("start instance [id:"+id+"]");
 
-    StartInstancesRequest request = StartInstancesRequest.builder()
-            .instanceIds(instanceId)
-            .build();
+    StartInstancesRequest request = new StartInstancesRequest()
+            .withInstanceIds(instance_id);
+           
 
     ec2.startInstances(request);
 }
 
 
-public static void stopInstance(Ec2Client ec2, String instanceId) {
+public static void stopInstance(String instance_id) {
+    System.out.println("stop instance [id:"+id+"]");
 
-    StopInstancesRequest request = StopInstancesRequest.builder()
-            .instanceIds(instanceId)
-            .build();
-
+    StopInstancesRequest request = new StopInstancesRequest
+    .withInstanceIds(instance_id);        
+            
+            
     ec2.stopInstances(request);
 }
 
+public static void rebootInstance(String instance_id) {
+    System.out.println("reboot instance [id:"+id+"]");
+    
+    RebootInstancesREquest request = new RebbotInstancsRequest()
+    	.withInstanceIds(instance_id);
+
+    ec2.terminateInstances(request);
+}
+
+public static void availableZones() {
+    System.out.println("available zones  ");
+    
+    // snippet-start:[ec2.java1.describe_region_and_zones.zones]
+    DescribeAvailabilityZonesResult zones_response = 
+        ec2.describeAvailabilityZones();
+        
+        for(AvailabilityZone zone : zones_response.getAvailabilityZones()) {
+            System.out.printf(
+                   "Found availability zone %s " +
+                   "with status %s",
+                   "in region %s",
+                   zone.getZoneName(),
+                   zone.getState(),
+                   zone.getRegionName());
+               System.out.println();    
+       }
+       
+       // snippet-end:[ec2.java1.describe_region_and_zones.zones]
+  }
+  
+public static void availableRegions() {
+    System.out.println("Available regions   ");
+    
+    DescribeRegionsResult regions_response = ec2.descibeRegions();
+    
+    for(Region region : regions_response.getRegions()) {
+    System.out.pritnf(
+        "Found region %s " +
+        "with endpoint %s",
+        region.getRegionName(),
+        region.getEndpoint());
+    }
+    // snippet-end:[ec2.java1.describe_region_and_zones.regions]
+
+	System.out.println();
+}  
+
+public static void createInstance(String imgId) {
+
+    RunInstancesREquest run_request = new RunInstancesRequest()
+    	.withImageeId(ami_id)
+    	.withInstanceType(InstanceType.T1Micro)
+    	.withMaxCount(1)
+    	.withMinCount(1);
+    	
+    RunInstancesResult run_response = ec2.runInstances(run_request);
 
 }
+
+
+
+public static void listImages() {
+    
+DescribeInstancesRequest request = new DescribeInstancesRequest();
+while(!done) {
+    DescribeInstancesResult response = ec2.describeInstances(request);
+
+    for(Reservation reservation : response.getReservations()) {
+        for(Instance instance : reservation.getInstances()) {
+            System.out.printf(
+                "Found instance with id %s, " +
+                "AMI %s, " +
+                "type %s, " +
+                "state %s " +
+                "and monitoring state %s",
+                instance.getInstanceId(),
+                instance.getImageId(),
+                instance.getInstanceType(),
+                instance.getState().getName(),
+                instance.getMonitoring().getState());
+        }
+    }
+
+    request.setNextToken(response.getNextToken());
+
+    if(response.getNextToken() == null) {
+        done = true;
+    }
+}
+}
+
+}
+
