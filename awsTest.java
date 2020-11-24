@@ -52,6 +52,30 @@ import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.InstanceState;
 
+//describeSecurityGrops
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
+import com.amazonaws.services.ec2.model.SecurityGroup;
+
+//DeleteSecurityGroup
+import com.amazonaws.services.ec2.model.DeleteSecurityGroupRequest;
+import com.amazonaws.services.ec2.model.DeleteSecurityGroupResult;
+
+//MonitorInstance
+import com.amazonaws.services.ec2.model.MonitorInstancesRequest;
+import com.amazonaws.services.ec2.model.UnmonitorInstancesRequest;
+import com.amazonaws.services.ec2.model.DryRunResult;
+import com.amazonaws.services.ec2.model.DryRunSupportedRequest;
+
+
+import com.amazonaws.util.XpathUtils;
+//unMonitorInstance
+
+
+//terminate
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+
+
 /*
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.CreateTagsRequest;
@@ -115,6 +139,9 @@ System.out.println(" 1. list instance 2. available zones ");
 System.out.println(" 3. start instance 4. available regions ");
 System.out.println(" 5. stop instance 6. create instance ");
 System.out.println(" 7. reboot instance 8. list images ");
+System.out.println(" 9. DescribeSecurityGroups 10. DeleteSecurityGroup ");
+System.out.println(" 11.MonitorInstance 12. unmonitorInstance ");
+System.out.println(" 13. terminate ");
 System.out.println(" 99. quit ");
 System.out.println("------------------------------------------------------------");
 System.out.print("Enter an integer: ");
@@ -163,7 +190,26 @@ case 7:
 case 8:
 	listImages();
 	break;
+case 9:
+	DescribeSecurityGroups();
+	break;
 
+case 10:
+	System.out.println("Enter an deletesecuritygroup id : ");
+	 DeleteSecurityGroup(id_string.next());
+	break;
+
+case 11:
+	System.out.println("MonitorInstance id : ");
+	 MonitorInstance(id_string.next());
+	 
+case 12:
+	System.out.println("unMonitorInstance id : ");
+	unMonitorInstance(id_string.next());
+
+case 13: 
+	System.out.println("Enter an instance id : ");
+	terminateInstance(id_string.next());
 case 99:
 	System.exit(0);
 	break;
@@ -280,7 +326,145 @@ public static void availableRegions() {
 		
 	}
 
+public static void  DeleteSecurityGroup(String id_string) {
+ System.out.println("Deleting ..... [ " +id_string+"]");
+//final AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
 
+      DeleteSecurityGroupRequest request = new DeleteSecurityGroupRequest()
+            .withGroupId(id_string);
+
+        DeleteSecurityGroupResult response = ec2.deleteSecurityGroup(request);
+
+        System.out.printf(
+            "Successfully deleted security group with id %s", id_string);
+ }
+
+public static void DescribeSecurityGroups() {
+		System.out.println("DescribeSecurityGroups....");
+		
+        final AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
+
+		DescribeSecurityGroupsRequest request =
+            new DescribeSecurityGroupsRequest();
+                
+
+        DescribeSecurityGroupsResult response =
+            ec2.describeSecurityGroups(request);
+
+        for(SecurityGroup group : response.getSecurityGroups()) {
+            System.out.printf(
+                "Found security group with id %s, " +
+                "vpc id %s " +
+                "and description %s",
+                group.getGroupId(),
+                group.getVpcId(),
+                group.getDescription());
+		 System.out.println();
+ 		 System.out.println(" ");
+	}
+}
+public static void  MonitorInstance(String id_string) {
+ System.out.println("MonitorInstance ..... [ " +id_string+"]");
+ 
+        final AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
+ 
+ DryRunSupportedRequest<MonitorInstancesRequest> dry_request =
+            () -> {
+            MonitorInstancesRequest request = new MonitorInstancesRequest()
+                .withInstanceIds(id_string);
+
+            return request.getDryRunRequest();
+        };
+
+        DryRunResult dry_response = ec2.dryRun(dry_request);
+
+        if (!dry_response.isSuccessful()) {
+            System.out.printf(
+                "Failed dry run to enable monitoring on instance %s",
+                id_string);
+
+            throw dry_response.getDryRunResponse();
+        }
+
+        MonitorInstancesRequest request = new MonitorInstancesRequest()
+                .withInstanceIds(id_string);
+
+        ec2.monitorInstances(request);
+
+        System.out.printf(
+            "Successfully enabled monitoring for instance %s",
+            id_string);
+ }
+ 
+public static void  unMonitorInstance(String id_string) {
+ System.out.println("unMonitorInstance ..... [ " +id_string+"]");
+//final AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
+
+        final AmazonEC2 ec2 = AmazonEC2ClientBuilder.defaultClient();
+
+DryRunSupportedRequest<UnmonitorInstancesRequest> dry_request =
+            () -> {
+            UnmonitorInstancesRequest request = new UnmonitorInstancesRequest()
+                .withInstanceIds(id_string);
+
+            return request.getDryRunRequest();
+        };
+
+        DryRunResult dry_response = ec2.dryRun(dry_request);
+
+        if (!dry_response.isSuccessful()) {
+            System.out.printf(
+                "Failed dry run to disable monitoring on instance %s",
+                id_string);
+
+            throw dry_response.getDryRunResponse();
+        }
+
+        UnmonitorInstancesRequest request = new UnmonitorInstancesRequest()
+            .withInstanceIds(id_string);
+
+        ec2.unmonitorInstances(request);
+
+        System.out.printf(
+            "Successfully disabled monitoring for instance %s", id_string);
+ }
+
+
+	/*
+public static void CreateSecurityGroup(String id_string) {
+
+/*
+AmazonEC2 ec2 = new AmazonEC2Client(credentials);
+ec2.setEndpoint("ec2.us-east-1.amazonaws.com");
+        */
+        /*
+ CreateSecurityGroupRequest create_request = new
+            CreateSecurityGroupRequest()
+                .withGroupName(group_name)
+                .withDescription(group_desc)
+                .withVpcId(vpc_id);
+
+        CreateSecurityGroupResult create_response =
+            ec2.createSecurityGroup(create_request);
+
+
+
+
+}
+*/
+
+public static void terminateInstance(String id_string) {
+		System.out.println("terminate instance... [id:"+id_string+"]");
+		
+		TerminateInstancesRequest terminateInstancesRequest = new TerminateInstancesRequest();
+		terminateInstancesRequest.withInstanceIds( id_string );
+		
+		ec2.terminateInstances( terminateInstancesRequest );
+	}
+	
+	
+
+	
 public static void createInstance(String id_string) {
 
 /*
