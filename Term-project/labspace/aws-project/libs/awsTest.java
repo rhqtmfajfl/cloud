@@ -320,6 +320,7 @@ public static void availableRegions() {
 		    System.out.printf(
 	    		"Found region %s, with endpoint %s", 
 	    		region.getRegionName(), region.getEndpoint());
+	    				 System.out.println();
     		}
     		 // snippet-end:[ec2.java1.describe_region_and_zones.regions]
 		 System.out.println();
